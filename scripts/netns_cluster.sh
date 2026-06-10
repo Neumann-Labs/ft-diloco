@@ -35,6 +35,12 @@ up() {
   sysctl -qw net.ipv4.ip_forward=1
   iptables -t nat -C POSTROUTING -s "$SUBNET.0/24" ! -d "$SUBNET.0/24" -j MASQUERADE 2>/dev/null ||
     iptables -t nat -A POSTROUTING -s "$SUBNET.0/24" ! -d "$SUBNET.0/24" -j MASQUERADE
+  # Docker sets FORWARD policy DROP (and loads br_netfilter, so even bridged
+  # ns<->ns traffic hits iptables) — accept our subnet explicitly.
+  iptables -C FORWARD -s "$SUBNET.0/24" -j ACCEPT 2>/dev/null ||
+    iptables -I FORWARD 1 -s "$SUBNET.0/24" -j ACCEPT
+  iptables -C FORWARD -d "$SUBNET.0/24" -j ACCEPT 2>/dev/null ||
+    iptables -I FORWARD 1 -d "$SUBNET.0/24" -j ACCEPT
   echo "up: $n namespaces on $BR"
 }
 
@@ -44,6 +50,8 @@ down() {
     ip netns del "ftd$i" 2>/dev/null || true
   done
   iptables -t nat -D POSTROUTING -s "$SUBNET.0/24" ! -d "$SUBNET.0/24" -j MASQUERADE 2>/dev/null || true
+  iptables -D FORWARD -s "$SUBNET.0/24" -j ACCEPT 2>/dev/null || true
+  iptables -D FORWARD -d "$SUBNET.0/24" -j ACCEPT 2>/dev/null || true
   ip link del "$BR" 2>/dev/null || true
   echo "down"
 }
