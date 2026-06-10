@@ -12,6 +12,7 @@ sync all replicas hold identical params, so the eval measures the *global* model
 """
 
 import os
+import socket
 import time
 from datetime import timedelta
 
@@ -78,6 +79,10 @@ def run_diloco(
         replica_id=f"ftd_{replica_id}",
         timeout=timedelta(seconds=cfg.quorum_timeout_s),
         checkpoint_transport=HTTPTransport(timeout=timedelta(seconds=60), num_chunks=0),
+        # Inside a netns the default advertised hostname resolves to the host, not
+        # this namespace — peers would dial the wrong place. FTD_ADVERTISE_HOST
+        # overrides with the namespace veth IP (see scripts/netns_cluster.sh).
+        hostname=os.environ.get("FTD_ADVERTISE_HOST", socket.gethostname()),
     )
 
     H = cfg.sync_every
