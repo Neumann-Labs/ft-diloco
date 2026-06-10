@@ -32,3 +32,22 @@ kill-mid-allreduce behavior on Gloo.
   standalone launcher must host a `TCPStore(is_master=True)` on group rank 0 first.
   Repro: construct Manager with MASTER_ADDR/PORT set but no store server → hang.
   [candidate-doc; candidate-pr: a store-hosting fallback or a clear timeout error]
+
+## 2026-06-10 — M0.5 kill/rejoin validation (run m05-rejoin) [evidence-171]
+
+Setup: 2 replica groups (micro 3.3M-param LM, CPU/Gloo, H=20) on worker4, lighthouse on
+worker1, `min_replica_size=1`, sync quorum, HTTPTransport.
+
+- `kill -9` replica 1 mid-run (22:53:59): survivor's next `should_commit` succeeded one
+  sync period later; quorum shrank 2→1 with zero stall; solo sync cadence ~2x faster
+  (no peer wait). No manual intervention.
+- Relaunch (22:56:08): manager logged `healing is required step=0, max_step=41,
+  recover_src_replica_rank=0` → P2P state transfer from the survivor; first sync after
+  rejoin committed at outer_step 42 with 2 participants.
+- **State equality proof: 30/30 digest points (params + outer Nesterov momentum buffers)
+  bit-identical across replicas at every post-rejoin sync boundary** (sha256 over fp32
+  bytes). Outer optimizer state demonstrably survives kill→rejoin via live recovery —
+  no checkpoint needed.
+- Negative control (run m05-kill, accidental): a worker rejoining an EMPTY cluster (all
+  peers exited) starts from scratch at step 0 — live recovery requires a living peer;
+  full-cluster death needs durable checkpoints (the M3 supervisor design point).
