@@ -3,8 +3,8 @@ mode: diloco
 model: tiny50m
 data_dir: data/tinystories
 seed: 1337
-batch_size: 32
-grad_accum: 1
+batch_size: 8
+grad_accum: 4
 max_steps: 3000          # per replica; 2 replicas => same total tokens as 6000 baseline steps
 sync_every: 100
 outer_lr: 0.7
@@ -14,4 +14,4 @@ lr: 4.0e-4
 warmup_steps: 200
 log_every: 10
 eval_every: 250
-eval_batches: 50
+eval_batches: 100

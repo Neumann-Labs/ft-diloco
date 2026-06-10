@@ -3,8 +3,8 @@ mode: baseline
 model: base124m
 data_dir: data/tinystories
 seed: 1337
-batch_size: 8
-grad_accum: 4
+batch_size: 4
+grad_accum: 8
 max_steps: 4000
 lr: 4.0e-4
 warmup_steps: 200
