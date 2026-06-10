@@ -1,0 +1,13 @@
+run_id: m0-base-s1337
+mode: baseline
+model: base124m
+data_dir: data/tinystories
+seed: 1337
+batch_size: 8
+grad_accum: 4
+max_steps: 4000
+lr: 4.0e-4
+warmup_steps: 200
+log_every: 10
+eval_every: 250
+eval_batches: 25
