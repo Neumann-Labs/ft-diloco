@@ -55,6 +55,20 @@ def run_diloco(
         inner_opt.load_state_dict(sd["inner_optim"])
         outer_opt.load_state_dict(sd["outer_optim"])
 
+    # torchft assumes torchrun hosts the per-replica-group TCPStore; Manager connects
+    # as a client (is_master=False) and blocks forever without a server. Standalone,
+    # group rank 0 must host it — keep the reference alive for the Manager's lifetime.
+    store = None
+    if int(os.environ.get("RANK", "0")) == 0:
+        from torch.distributed import TCPStore
+
+        store = TCPStore(
+            os.environ.get("MASTER_ADDR", "localhost"),
+            int(os.environ["MASTER_PORT"]),
+            is_master=True,
+            wait_for_workers=False,
+        )
+
     manager = Manager(
         pg=ProcessGroupGloo(timeout=timedelta(seconds=30)),
         use_async_quorum=False,  # torchft #316: async quorum SIGSEVs on long runs
@@ -136,3 +150,4 @@ def run_diloco(
         shutdown = getattr(manager, "shutdown", None)
         if callable(shutdown):
             shutdown()
+        del store

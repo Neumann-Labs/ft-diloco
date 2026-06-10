@@ -26,3 +26,9 @@ kill-mid-allreduce behavior on Gloo.
   `KeyError: 'MASTER_ADDR'` in manager.py store setup. Workaround: export
   MASTER_ADDR=localhost + unique MASTER_PORT per replica group on shared hosts.
   [candidate-doc]
+- Root cause of the standalone hang: `Manager.__init__` connects to the replica-group
+  TCPStore with `is_master=False` (manager.py:291) — it assumes torchrun is hosting the
+  store. Without torchrun the constructor blocks forever (no timeout, no error). A
+  standalone launcher must host a `TCPStore(is_master=True)` on group rank 0 first.
+  Repro: construct Manager with MASTER_ADDR/PORT set but no store server → hang.
+  [candidate-doc; candidate-pr: a store-hosting fallback or a clear timeout error]
