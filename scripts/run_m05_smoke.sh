@@ -6,6 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 RUN="${1:-m05-smoke}"
+STEPS="${STEPS:-3000}"
 LH="${TORCHFT_LIGHTHOUSE:-http://worker1.attlocal.net:29510}"
 mkdir -p "experiments/$RUN"
 
@@ -17,7 +18,7 @@ launch_replica() {
      REPLICA_GROUP_ID=$R NUM_REPLICA_GROUPS=2 TORCHFT_LIGHTHOUSE=$LH \
      .venv/bin/python -m ftdiloco.train --config configs/train/m1_diloco.yaml \
        --set run_id=$RUN --set model=micro --set data_dir=/tmp/ftd-smoke-data \
-       --set device=cpu --set dtype=float32 --set batch_size=4 --set max_steps=600 \
+       --set device=cpu --set dtype=float32 --set batch_size=4 --set max_steps=$STEPS \
        --set sync_every=20 --set eval_every=100 --set eval_batches=2 --set log_every=20 \
        >> experiments/$RUN/worker$R.log 2>&1"
 }
