@@ -58,3 +58,8 @@ worker1, `min_replica_size=1`, sync quorum, HTTPTransport.
   configure (localhost times out at c10d socket.cpp:1030); (3) `GLOO_SOCKET_IFNAME`
   pinned to the right interface. None of this is documented for non-torchrun use.
   [candidate-doc]
+- One lighthouse = one logical training job. Two concurrent runs registering the same
+  replica_ids ("ftd_0"/"ftd_1") against a shared lighthouse merge into a single broken
+  quorum (observed num_participants=4, commits fail). Operational rule: kill prior runs
+  (or use a dedicated lighthouse / distinct replica_id namespace) before starting a new
+  cluster. Ghost members age out after heartbeat_timeout (5s default). [candidate-doc]
