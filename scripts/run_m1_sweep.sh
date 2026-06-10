@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # M1 H-sweep on worker4: for each H, two DiLoCo replica groups (same GPU), each inside
 # its own network namespace (ftd0/ftd1) so sync traffic crosses measurable veths.
-# Requires: sudo scripts/netns_cluster.sh up 2   (passwordless sudo available)
+# Requires: sudo bash scripts/netns_cluster.sh up 2   (passwordless sudo available)
 # Run inside tmux:
 #   tmux new -d -s m1sweep 'scripts/run_m1_sweep.sh 1337 2>&1 | tee /tmp/m1sweep.log'
 # Env overrides: HS="25 50 100 200 500", STEPS=3000, LIGHTHOUSE_V4.
@@ -13,7 +13,7 @@ STEPS="${STEPS:-3000}"
 # v4 only inside the namespaces (no v6 route over the veth/NAT path)
 LIGHTHOUSE_V4="${LIGHTHOUSE_V4:-http://192.168.1.104:29510}"
 
-sudo scripts/netns_cluster.sh up 2 || true
+sudo bash scripts/netns_cluster.sh up 2 || true
 
 for H in "${HS[@]}"; do
   RUN="m1-h${H}-s${SEED}"
