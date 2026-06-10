@@ -19,3 +19,10 @@ kill-mid-allreduce behavior on Gloo.
 - Known live bugs steered around from day one: #316 (async-quorum SIGSEV → we run
   `use_async_quorum=False`), #323 (PGTransport timeout ineffective → we use
   HTTPTransport). [evidence-171: config guidance]
+
+- `Manager` hard-requires torchrun-style env (`MASTER_ADDR`/`MASTER_PORT`, and the
+  TCPStore it implies) even for a single-process replica group — standalone (non-torchrun)
+  DiLoCo usage isn't documented anywhere; repro: construct Manager without torchrun →
+  `KeyError: 'MASTER_ADDR'` in manager.py store setup. Workaround: export
+  MASTER_ADDR=localhost + unique MASTER_PORT per replica group on shared hosts.
+  [candidate-doc]
