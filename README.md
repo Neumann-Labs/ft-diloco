@@ -7,7 +7,7 @@ Train a small LM across cheap, unreliable machines that sync only every H steps
 [torchft](https://github.com/meta-pytorch/torchft)) — and show that killing,
 disconnecting, or adding machines mid-run does not break convergence.
 
-> Status: M0–M2 complete. Failure storms (M3) and WAN realism (M4) next. Full polish at M5.
+> Status: M0–M3 complete. WAN realism + cloud hybrid (M4) next. Full polish at M5.
 
 ![kill-a-node demo](plots/demo.gif)
 
@@ -28,6 +28,31 @@ heal, SIGSTOP straggler, resume) finishes within **+0.6%** of the fault-free los
 ![recovery](plots/m2_recovery.png)
 
 Details: [docs/findings-171.md](docs/findings-171.md).
+
+**Failure storms (M3):** Poisson-scheduled chaos (kill -9, SIGSTOP stragglers, link
+partitions) with supervisor auto-restart, ~45 min each, zero manual intervention:
+
+| storm | executed faults | step efficiency | survivor commits after kill | victim fully back |
+|---|---|---|---|---|
+| k120 | 52 (69/hr) | **88.2%** | median 14s | median 73s |
+| k60 | 64 (85/hr) | **85.0%** | median 12s, p90 20s | median 86s, p90 182s |
+
+Both sit above torchft's published 82.3% step efficiency (Llama-3 1B, one failure/min,
+300 L40S GPUs) at comparable-or-higher fault rates — on two consumer replicas.
+
+![storm](plots/m3_storm.png)
+![storm timeline](plots/m3_timeline.png)
+
+**Negative result worth knowing (found the hard way):** live P2P recovery alone is NOT
+sufficient under restart churn at small replica counts. A kill landing while the only
+other member is alive-but-unhealed leaves a fresh-init worker as a singleton quorum —
+its random weights silently become the cluster state (we observed heals from donors at
+manager step 0, and the global eval regressing 2.4 → 4.0 mid-storm). torchft's 30-group
+setup makes this practically unreachable; few-big-member cross-DC DiLoCo (#171's regime)
+hits it head-on. Fix shipped here: **commit-coupled checkpoints** (each replica persists
+state every 5 commits; restarts init from the newest checkpoint) plus a healthy-donor
+invariant in the chaos harness. The no-checkpoint storm data is preserved in
+`experiments/m3-storm-k*-nockpt/`.
 
 **DiLoCo trades sync frequency for quality smoothly (M1):** 2 workers, 51M params,
 TinyStories, equal total tokens vs a 3-seed single-GPU baseline (eval loss 1.6773 ± 0.0011):

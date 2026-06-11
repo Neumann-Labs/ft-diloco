@@ -60,7 +60,9 @@ def main() -> None:
         rate, n = committed_rate(run, args.h, win)
         summary = fuse(run)
         kills = [f for f in summary["faults"] if f["fault"] in ("kill", "kill_safe") and "t_back_s" in f]
-        n_faults = len([f for f in summary["faults"]])
+        raw = [e for e in __import__("parse_logs").load_jsonl(run / "chaos.jsonl")
+               if e.get("event") == "fault" and e.get("ok")]
+        n_faults = len([e for e in raw if not (isinstance(e.get("result"), dict) and "skipped" in e["result"])])
         wall_hr = (win[1] - win[0]) / 3600
         rows.append({
             "label": run.name.replace("m3-storm-", ""),

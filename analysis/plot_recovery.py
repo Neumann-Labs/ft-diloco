@@ -14,6 +14,7 @@ from parse_logs import fuse, load_jsonl  # same directory
 
 FAULT_STYLE = {
     "kill": ("x", "tab:red", "kill -9"),
+    "kill_safe": ("x", "tab:red", "kill -9"),
     "relaunch": ("^", "tab:green", "relaunch"),
     "partition": ("v", "tab:orange", "partition (link down)"),
     "heal": ("o", "tab:cyan", "heal (link up)"),
@@ -60,19 +61,29 @@ def main() -> None:
         ax.plot(gap_x, gap_y, label=f"worker {rid}", linewidth=1.2)
 
     seen = set()
+    many = len(chaos) > 12
     for fev in chaos:
         marker, color, label = FAULT_STYLE.get(fev["fault"], ("|", "k", fev["fault"]))
         x = (fev["ts"] - t0) / 60
-        ax.axvline(x, color=color, alpha=0.35, linestyle="--", linewidth=1)
-        lbl = label if label not in seen else None
-        seen.add(label)
-        ax.plot([x], [ax.get_ylim()[1] * 0.97], marker=marker, color=color, label=lbl, markersize=9, clip_on=False)
+        ax.axvline(x, color=color, alpha=0.2 if many else 0.35, linestyle="--", linewidth=0.8 if many else 1)
+        if not many:
+            lbl = label if label not in seen else None
+            seen.add(label)
+            ax.plot([x], [ax.get_ylim()[1] * 0.97], marker=marker, color=color, label=lbl, markersize=9, clip_on=False)
 
     lat = []
-    for fev in chaos:
-        for k in ("t_resume_s", "t_detect_s", "t_rejoin_s"):
-            if k in fev:
-                lat.append(f"{fev['fault']}@{fev['at']}s: {k.replace('_s', '')}={fev[k]:.1f}s")
+    all_lat = [(k, fev[k]) for fev in chaos for k in ("t_resume_s", "t_detect_s", "t_rejoin_s", "t_back_s") if k in fev]
+    if len(all_lat) > 8:
+        import statistics as st
+        for key in ("t_resume_s", "t_back_s", "t_rejoin_s"):
+            vals = sorted(v for k, v in all_lat if k == key)
+            if vals:
+                lat.append(f"{key.replace('_s','')}: median {st.median(vals):.0f}s  p90 {vals[int(len(vals)*0.9)]:.0f}s  (n={len(vals)})")
+    else:
+        for fev in chaos:
+            for k in ("t_resume_s", "t_detect_s", "t_rejoin_s"):
+                if k in fev:
+                    lat.append(f"{fev['fault']}@{fev['at']}s: {k.replace('_s', '')}={fev[k]:.1f}s")
     if lat:
         ax.text(
             0.99, 0.98, "\n".join(lat), transform=ax.transAxes, fontsize=8,
