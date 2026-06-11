@@ -94,3 +94,24 @@ def relaunch(launch_cmd: str, replica_id: int) -> dict:
         capture_output=True, text=True,
     )
     return {"cmd": launch_cmd.format(R=replica_id)}
+
+
+def kill_safe(run_dir: Path, replica_id: int, n_replicas: int = 2) -> dict:
+    """Kill only if at least one OTHER replica is alive — the storm never executes a
+    cluster-wide kill (live recovery needs a donor; documented experiment rule)."""
+    others_alive = []
+    for rid in range(n_replicas):
+        if rid == replica_id:
+            continue
+        try:
+            others_alive.append(resolve_pid(run_dir, rid))
+        except Exception:
+            pass
+    if not others_alive:
+        return {"skipped": "no healthy donor — refusing cluster-wide kill"}
+    try:
+        pid = resolve_pid(run_dir, replica_id)
+    except Exception as e:
+        return {"skipped": f"target already dead: {e}"}
+    os.kill(pid, signal.SIGKILL)
+    return {"pid": pid}

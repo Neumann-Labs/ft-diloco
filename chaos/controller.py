@@ -29,7 +29,7 @@ import yaml
 
 from . import faults
 
-FAULTS_NEEDING_RUN_DIR = {"kill", "stop", "cont"}
+FAULTS_NEEDING_RUN_DIR = {"kill", "kill_safe", "stop", "cont"}
 
 
 def execute(schedule: dict, run_dir: Path, dry_run: bool = False) -> None:

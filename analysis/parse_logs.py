@@ -36,16 +36,23 @@ def fuse(run_dir: Path) -> dict:
         rid = int(f.stem.replace("replica", ""))
         replicas[rid] = load_jsonl(f)
     chaos = [e for e in load_jsonl(run_dir / "chaos.jsonl") if e.get("event") == "fault" and e.get("ok")]
+    for c in chaos:
+        if isinstance(c.get("result"), dict) and "skipped" in c["result"]:
+            c["skipped"] = True
 
     syncs = {
         rid: sorted([e for e in evs if e["event"] == "outer_sync"], key=lambda e: e["ts"])
         for rid, evs in replicas.items()
     }
 
+    starts = {
+        rid: sorted([e["ts"] for e in evs if e.get("phase") == "start"])
+        for rid, evs in replicas.items()
+    }
     faults_out = []
     for f in chaos:
         rec = dict(fault=f["fault"], target=f["target"], ts=f["ts"], at=f["at"])
-        if f["fault"] == "kill":
+        if f["fault"] in ("kill", "kill_safe") and "skipped" not in (f.get("result") or {}):
             survivor = [r for r in syncs if r != f["target"]]
             if survivor:
                 s = survivor[0]
@@ -60,6 +67,14 @@ def fuse(run_dir: Path) -> dict:
                 ]
                 if drop:
                     rec["t_detect_s"] = drop[0]["ts"] - f["ts"]
+            # supervisor-restart path (storms have no explicit relaunch events):
+            t = f["target"]
+            restart = [ts for ts in starts.get(t, []) if ts > f["ts"]]
+            if restart:
+                rec["t_restart_s"] = restart[0] - f["ts"]
+                back = [e for e in syncs.get(t, []) if e["ts"] > restart[0] and e["committed"]]
+                if back:
+                    rec["t_back_s"] = back[0]["ts"] - f["ts"]
         elif f["fault"] == "relaunch":
             t = f["target"]
             after = [e for e in syncs.get(t, []) if e["ts"] > f["ts"] and e["committed"]]
