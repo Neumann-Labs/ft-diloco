@@ -1,0 +1,11 @@
+# M2 money-shot scenario: kill -> solo survival -> relaunch/heal -> partition -> heal.
+# Times are seconds from controller start (start the controller once training is warm).
+run_id: m2-kill-rejoin
+launch_cmd: "bash scripts/launch_m2_replica.sh m2-kill-rejoin {R}"
+events:
+  - {at: 240, fault: kill, target: 1}
+  - {at: 420, fault: relaunch, target: 1}
+  - {at: 660, fault: partition, target: 1}
+  - {at: 700, fault: heal, target: 1}
+  - {at: 880, fault: stop, target: 0}      # straggler: SIGSTOP 40s
+  - {at: 920, fault: cont, target: 0}
