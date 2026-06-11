@@ -1,0 +1,98 @@
+[W611 02:11:04.041585437 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3
+2026-06-11T02:11:04.589 [INFO] [torchft::manager] - Creating LighthouseClient: establishing connection to http://192.168.1.104:29510
+2026-06-11T02:11:04.590 [INFO] [torchft::manager] - [Replica ftd_1] Manager listening on http://10.77.0.11:36111
+2026-06-11T02:11:04.590 [INFO] [torchft::manager] - Creating ManagerClient: establishing connection to http://10.77.0.11:36111
+2026-06-11T02:13:54.195 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:13:54.195 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:13:54.198 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 0, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 0, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781144034, nanos: 196633202 }) }) }
+2026-06-11T02:13:54.198 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:13:54.198 [INFO] [torchft::manager] - [Replica ftd_1] healing is required step=0, max_step=0, recover_src_replica_rank=0
+2026-06-11T02:13:54.228 [INFO] [torchft::manager] - Creating ManagerClient: establishing connection to http://10.77.0.10:39891
+/srv/fpga/ft-diloco/.venv/lib/python3.12/site-packages/torch/distributed/_serialization.py:63: UserWarning: The given buffer is not writable, and PyTorch does not support non-writable tensors. This means you can write to the underlying (supposedly non-writable) buffer using the tensor. You may want to copy the buffer to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_new.cpp:1576.)
+  storage = torch.frombuffer(
+2026-06-11T02:13:55.396 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:13:55.396 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:16:45.390 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:16:45.390 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:16:45.392 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 1, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 1, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781144205, nanos: 390029163 }) }) }
+2026-06-11T02:16:45.392 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:16:45.535 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:16:45.535 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:19:35.382 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:19:35.382 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:19:35.383 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 2, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 2, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781144375, nanos: 380900249 }) }) }
+2026-06-11T02:19:35.383 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:19:35.547 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:19:35.547 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:22:26.044 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:22:26.045 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:22:26.155 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 3, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 3, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781144546, nanos: 153166469 }) }) }
+2026-06-11T02:22:26.155 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:22:26.362 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:22:26.362 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:25:17.265 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:25:17.265 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:25:17.268 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 4, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 4, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781144717, nanos: 265922470 }) }) }
+2026-06-11T02:25:17.268 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:25:17.420 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:25:17.420 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:28:07.248 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:28:07.248 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:28:07.259 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 5, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 5, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781144887, nanos: 256936725 }) }) }
+2026-06-11T02:28:07.259 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:28:07.410 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:28:07.410 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:31:00.609 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:31:00.609 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:31:00.611 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 6, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 6, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781145060, nanos: 608843838 }) }) }
+2026-06-11T02:31:00.611 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:31:00.799 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:31:00.799 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:33:50.688 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:33:50.688 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:33:50.699 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 7, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 7, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781145230, nanos: 697480381 }) }) }
+2026-06-11T02:33:50.699 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:33:50.854 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:33:50.854 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:36:40.679 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:36:40.679 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:36:40.680 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 8, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 8, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781145400, nanos: 678683258 }) }) }
+2026-06-11T02:36:40.680 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:36:40.821 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:36:40.822 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:39:30.627 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:39:30.627 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:39:30.629 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 9, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 9, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781145570, nanos: 626843448 }) }) }
+2026-06-11T02:39:30.629 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:39:30.789 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:39:30.789 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:42:20.614 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:42:20.614 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:42:20.615 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 10, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 10, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781145740, nanos: 613940880 }) }) }
+2026-06-11T02:42:20.615 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:42:20.766 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:42:20.766 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:45:11.673 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:45:11.674 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:45:11.675 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 11, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 11, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781145911, nanos: 673631516 }) }) }
+2026-06-11T02:45:11.676 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:45:11.843 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:45:11.843 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:48:01.720 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:48:01.720 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:48:01.817 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 12, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 12, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781146081, nanos: 814903878 }) }) }
+2026-06-11T02:48:01.817 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:48:01.962 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:48:01.962 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:50:51.882 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:50:51.882 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:50:51.883 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 13, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 13, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781146251, nanos: 881459640 }) }) }
+2026-06-11T02:50:51.883 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:50:52.031 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:50:52.031 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
+2026-06-11T02:53:41.919 [INFO] [torchft::manager] - [Replica ftd_1] Start quorum for group_rank 0
+2026-06-11T02:53:41.919 [INFO] [torchft::manager] - [Replica ftd_1] All workers joined - starting quorum
+2026-06-11T02:53:41.920 [INFO] [torchft::manager] - [Replica ftd_1] got lighthouse quorum LighthouseQuorumResponse { quorum: Some(Quorum { quorum_id: 24, participants: [QuorumMember { replica_id: "ftd_0:85db4f52-6cb5-4342-a91a-b91ac9c5cb3a", address: "http://10.77.0.10:39891", store_address: "10.77.0.10:29600", step: 14, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }, QuorumMember { replica_id: "ftd_1:eece9f7e-47cd-4e97-9521-d187c8ec8e3b", address: "http://10.77.0.11:36111", store_address: "10.77.0.11:29601", step: 14, world_size: 1, shrink_only: false, commit_failures: 0, data: "" }], created: Some(Timestamp { seconds: 1781146421, nanos: 918409793 }) }) }
+2026-06-11T02:53:41.920 [INFO] [torchft::manager] - [Replica ftd_1] Finished quorum for group_rank 0
+2026-06-11T02:53:42.133 [INFO] [torchft::manager] - [Replica ftd_1] should_commit request from 0 should_commit=true
+2026-06-11T02:53:42.133 [INFO] [torchft::manager] - [Replica ftd_1] should_commit completed should_commit=true
