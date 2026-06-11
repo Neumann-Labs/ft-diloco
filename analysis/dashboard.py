@@ -76,7 +76,6 @@ def chart_ansi(replicas, chaos, t0, width, height) -> str:
     plt.canvas_color("default")
     plt.axes_color("default")
     plt.ticks_color("grey")
-    ymax = 0.0
     for rid, evs in sorted(replicas.items()):
         steps = [e for e in evs if e["event"] == "step"]
         if not steps:
@@ -84,13 +83,25 @@ def chart_ansi(replicas, chaos, t0, width, height) -> str:
         # downsample to keep redraws cheap
         stride = max(1, len(steps) // 300)
         steps = steps[::stride]
-        xs = [(e["ts"] - t0) / 60 for e in steps]
-        ys = [e["loss"] for e in steps]
-        ymax = max(ymax, max(ys))
-        plt.plot(xs, ys, color=PLT_COLORS[rid % len(PLT_COLORS)], label=f"worker {rid}")
+        # split into segments at >30s gaps so a death shows as a hole, not a slope
+        segments, cur = [], [steps[0]]
+        for prev, e in zip(steps, steps[1:]):
+            if e["ts"] - prev["ts"] > 30:
+                segments.append(cur)
+                cur = []
+            cur.append(e)
+        segments.append(cur)
+        color = PLT_COLORS[rid % len(PLT_COLORS)]
+        for i, seg in enumerate(segments):
+            if len(seg) < 2:
+                continue
+            xs = [(e["ts"] - t0) / 60 for e in seg]
+            ys = [e["loss"] for e in seg]
+            plt.plot(xs, ys, color=color, marker="braille",
+                     label=f"worker {rid}" if i == 0 else None)
     for c in chaos:
-        color = "red" if c["fault"] == "kill" else "gray"
-        plt.vline((c["ts"] - t0) / 60, color=color)
+        if c["fault"] in ("kill", "relaunch"):
+            plt.vline((c["ts"] - t0) / 60, color="red" if c["fault"] == "kill" else "green")
     plt.xlabel("minutes")
     plt.title("training loss")
     return plt.build()
