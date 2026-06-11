@@ -7,6 +7,6 @@ cd "$(dirname "$0")/.."
 RUN="${1:?run_id}"
 DUR="${2:-210}"
 tmux kill-session -t ftdrec 2>/dev/null || true
-tmux new -d -s ftdrec \
+tmux new -d -s ftdrec -x 132 -y 36 \
   "cd /srv/fpga/ft-diloco && bash scripts/record_gif.sh $RUN $DUR > /tmp/record.log 2>&1"
 echo "RECORDER_STARTED $RUN ${DUR}s $(date -Is)"
