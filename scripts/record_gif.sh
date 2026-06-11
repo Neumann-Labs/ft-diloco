@@ -16,14 +16,9 @@ PY=/srv/fpga/ft-diloco/.venv/bin/python
 
 tmux kill-session -t demo 2>/dev/null || true
 P0=$(tmux new-session -d -s demo -x 130 -y 34 -P -F '#{pane_id}')
-P1=$(tmux split-window -h -t "$P0" -P -F '#{pane_id}')
-P2=$(tmux split-window -v -t "$P0" -P -F '#{pane_id}')
-P3=$(tmux split-window -v -t "$P1" -P -F '#{pane_id}')
-tmux select-layout -t demo tiled
+P3=$(tmux split-window -v -l 5 -t "$P0" -P -F '#{pane_id}')
 
-tmux send-keys -t "$P0" "$PY analysis/ticker.py --run experiments/$RUN --replica 0 --name 'worker 0 (GPU)'" C-m
-tmux send-keys -t "$P1" "$PY analysis/ticker.py --run experiments/$RUN --replica 1 --name 'worker 1 (GPU)'" C-m
-tmux send-keys -t "$P2" "$PY analysis/ticker.py --run experiments/$RUN --cluster" C-m
+tmux send-keys -t "$P0" "$PY analysis/dashboard.py --run experiments/$RUN" C-m
 tmux send-keys -t "$P3" "clear" C-m
 
 # Drive the demo: kill at +20s, relaunch at +80s, recovery visible by ~+150s.
