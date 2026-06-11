@@ -7,14 +7,27 @@ Train a small LM across cheap, unreliable machines that sync only every H steps
 [torchft](https://github.com/meta-pytorch/torchft)) — and show that killing,
 disconnecting, or adding machines mid-run does not break convergence.
 
-> Status: M0 + M0.5 + M1 complete. Money-shot chaos demo (M2) next. Full polish at M5.
+> Status: M0–M2 complete. Failure storms (M3) and WAN realism (M4) next. Full polish at M5.
+
+![kill-a-node demo](plots/demo.gif)
+
+*Live, unedited: two DiLoCo workers training a 51M-param LM; `kill -9` lands mid-run —
+the survivor keeps committing solo; the replacement worker P2P-recovers the full state
+(params + outer momentum) from its peer and rejoins at the cluster's loss. Recorded with
+`scripts/record_gif.sh` — fully reproducible.*
 
 ## Results so far
 
-**Fault tolerance works (M0.5):** `kill -9` a worker mid-training and the survivor keeps
-committing without a stall; relaunch it and torchft's P2P recovery restores model params
-**and outer Nesterov momentum bit-exactly** (30/30 sha256 digest matches at every
-post-rejoin sync boundary). Details: [docs/findings-171.md](docs/findings-171.md).
+**Fault tolerance works (M0.5 + M2):** `kill -9` a worker mid-training and the survivor
+commits its next sync solo **5.0s** later; the relaunched worker P2P-recovers and commits
+within **54s** end-to-end (mostly process/CUDA startup). Recovery restores model params
+**and outer Nesterov momentum bit-exactly** (84/84 sha256 digest matches at every
+post-rejoin sync boundary, GPU model). A 6-fault scenario (kill, relaunch, partition,
+heal, SIGSTOP straggler, resume) finishes within **+0.6%** of the fault-free loss:
+
+![recovery](plots/m2_recovery.png)
+
+Details: [docs/findings-171.md](docs/findings-171.md).
 
 **DiLoCo trades sync frequency for quality smoothly (M1):** 2 workers, 51M params,
 TinyStories, equal total tokens vs a 3-seed single-GPU baseline (eval loss 1.6773 ± 0.0011):
