@@ -41,6 +41,7 @@ class TrainConfig:
     outer_momentum: float = 0.9
     min_replica_size: int = 1
     quorum_timeout_s: float = 120.0
+    pg_timeout_s: float = 60.0  # gloo collective timeout; raise for slow WAN links
     ckpt_every_syncs: int = 5  # commit-coupled durable checkpoint cadence (0 = off)
     # cadence
     log_every: int = 10

@@ -98,7 +98,7 @@ def run_diloco(
         )
 
     manager = Manager(
-        pg=ProcessGroupGloo(timeout=timedelta(seconds=30)),
+        pg=ProcessGroupGloo(timeout=timedelta(seconds=cfg.pg_timeout_s)),
         use_async_quorum=False,  # torchft #316: async quorum SIGSEVs on long runs
         min_replica_size=cfg.min_replica_size,
         load_state_dict=load_state_dict,
