@@ -102,3 +102,10 @@ netem sweep (veth, 20ms RTT, fp32 204.8MB payload, 51M model, 2 replica groups):
   and the cluster cascades. Mitigations to explore: quantized sync (upstream
   should_quantize=True halves/quarters payload), Streaming DiLoCo fragments, or QoS
   prioritization of the control plane. [evidence-171; candidate-doc]
+- **Rendezvous skew on heterogeneous workers:** first sync happens after H local steps,
+  so workers with different step times (GPU 0.4s vs CPU 0.8s + differing init costs)
+  request their first quorum up to minutes apart. `Manager(quorum_timeout=)` defaults to
+  60s — independently of `timeout=` — and the faster worker dies at first rendezvous if
+  skew exceeds it (observed: GPU at +41s, CPU at +103s, quorum formed 2s after the GPU
+  worker timed out). Heterogeneous/cross-DC deployments need quorum_timeout >= worst-case
+  H x step-time spread. [candidate-doc]

@@ -105,6 +105,10 @@ def run_diloco(
         state_dict=state_dict,
         replica_id=f"ftd_{replica_id}",
         timeout=timedelta(seconds=cfg.quorum_timeout_s),
+        # Separate knob (default 60s!): heterogeneous workers reach their first sync
+        # at different wall times (step-speed + init skew); the quorum wait must
+        # exceed that skew or the faster worker dies at rendezvous.
+        quorum_timeout=timedelta(seconds=cfg.quorum_timeout_s),
         checkpoint_transport=AdvertisedHTTPTransport(
             timeout=timedelta(seconds=60), num_chunks=0
         ),
