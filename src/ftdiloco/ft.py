@@ -90,8 +90,10 @@ def run_diloco(
     if int(os.environ.get("RANK", "0")) == 0:
         from torch.distributed import TCPStore
 
+        # Bind all interfaces; MASTER_ADDR is what peers are TOLD to dial (it may
+        # be a tailscale-netstack address that exists only virtually — not bindable).
         store = TCPStore(
-            os.environ.get("MASTER_ADDR", "localhost"),
+            "0.0.0.0",
             int(os.environ["MASTER_PORT"]),
             is_master=True,
             wait_for_workers=False,
