@@ -1,0 +1,39 @@
+run_id: storm-n8
+generator:
+  duration: 360.0
+  mean_kill: 70.0
+  mean_straggle: 200.0
+  mean_partition: 250.0
+  seed: 2
+  replicas: 8
+events:
+- at: 9.1
+  fault: kill_safe
+  target: 0
+- at: 45.0
+  fault: kill_safe
+  target: 2
+- at: 94.6
+  fault: kill_safe
+  target: 2
+- at: 188.3
+  fault: kill_safe
+  target: 4
+- at: 205.7
+  fault: kill_safe
+  target: 7
+- at: 213.7
+  fault: stop
+  target: 7
+- at: 236.3
+  fault: cont
+  target: 7
+- at: 241.1
+  fault: kill_safe
+  target: 0
+- at: 281.3
+  fault: kill_safe
+  target: 2
+- at: 306.3
+  fault: kill_safe
+  target: 4

@@ -1,0 +1,3 @@
+{"event": "chaos_start", "ts": 1781354977.214069, "mono": 4017740.668910174, "schedule": [{"at": 230.0, "fault": "cont", "target": 0}]}
+{"event": "fault", "fault": "cont", "target": 0, "at": 230.0, "ts": 1781355207.2173858, "mono": 4017970.672244904, "result": {"pid": 193778}, "ok": true}
+{"event": "chaos_end", "ts": 1781355207.2213056, "mono": 4017970.676152504}

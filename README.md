@@ -7,23 +7,52 @@ Train a small LM across cheap, unreliable machines that sync only every H steps
 [torchft](https://github.com/meta-pytorch/torchft)) — and show that killing,
 disconnecting, or adding machines mid-run does not break convergence.
 
-> Status: M0–M4 complete (incl. real cross-region cloud). Polish + blog write-up next.
+> Status: M0–M5 complete — incl. a 32-replica failure storm and real cross-region cloud.
+> Blog write-up next.
 
-![kill-a-node demo](plots/demo.gif)
+![32-replica failure storm](plots/m5_storm_n32.gif)
 
-*Live, unedited: two DiLoCo workers training a 51M-param LM; `kill -9` lands mid-run —
-the survivor keeps committing solo; the replacement worker P2P-recovers the full state
-(params + outer momentum) from its peer and rejoins at the cluster's loss. Recorded with
-`scripts/record_gif.sh` — fully reproducible.*
+*32 DiLoCo replica groups train under one lighthouse on a single commodity desktop while a
+chaos controller injects **125 faults/hr** — `kill -9`, SIGSTOP stragglers, link partitions.
+Green = training, white = committing a sync, purple = P2P-healing after a kill, red = killed.
+~30/32 stay alive throughout, every kill recovers, and the loss keeps descending. Reconstructed
+from the run's JSONL (every fault and commit is timestamped); 30 min compressed to 26 s.*
 
 ## Results so far
 
-**Fault tolerance works (M0.5 + M2):** `kill -9` a worker mid-training and the survivor
+**Failure storm at scale (M5 — 32 replicas, one desktop):** 32 DiLoCo replica groups under a
+single lighthouse on one Ryzen 9 5950X (16 cores), CPU-pinned micro model, hit with a Poisson
+chaos storm — 28 `kill -9`, 9 link partitions, 8 SIGSTOP stragglers: **125 faults/hr for 30 min,
+zero manual intervention.**
+
+![n32 storm results](plots/m5_n32_results.png)
+
+- **Liveness ~30/32 throughout**; all **27 kills fully recover** (T_back median **149s**, T_resume
+  median **57s**), and the global eval loss descends **10.8 → 4.3 monotonically through the storm**.
+- **97% of sync attempts commit**; committed-sync throughput holds at **97.7% of fault-free**. **0 OOM.**
+- **Honest finding (a question for [#171](docs/findings-171.md)):** per-sync **participation settles
+  ~16/32** even though ~30 are alive — each fault's quorum reconfiguration knocks the survivors'
+  barrier timing out of phase, and at 125 faults/hr the soft barrier (`min_replica_size=2`) never
+  re-aligns. *Fault-free* (CPU-pinned) it's the full 32. **Liveness ≠ participation under churn.**
+
+Why a micro model: 32 full models don't fit commodity RAM, and the storm exercises the
+*coordination* machinery — a 32-manager lighthouse quorum, P2P recovery, commit/rollback, the
+barrier — which is model-size-agnostic. The de-risk ladder (N=4 → 8 → 32, settling the
+`min_replica_size≥2` OOM and the CPU-pinning fix that lifts fault-free participation 17 → 32) is
+written up in [BUILDLOG.md](BUILDLOG.md).
+
+**Fault tolerance works, up close (M0.5 + M2):** `kill -9` a worker mid-training and the survivor
 commits its next sync solo **5.0s** later; the relaunched worker P2P-recovers and commits
 within **54s** end-to-end (mostly process/CUDA startup). Recovery restores model params
 **and outer Nesterov momentum bit-exactly** (84/84 sha256 digest matches at every
 post-rejoin sync boundary, GPU model). A 6-fault scenario (kill, relaunch, partition,
 heal, SIGSTOP straggler, resume) finishes within **+0.6%** of the fault-free loss:
+
+![kill-a-node close-up](plots/demo.gif)
+
+*The recovery mechanism in close-up: two workers training a 51M-param LM; `kill -9` lands mid-run,
+the survivor keeps committing solo, and the replacement P2P-recovers the full state (params +
+outer momentum) from its peer and rejoins at the cluster's loss. `scripts/record_gif.sh`.*
 
 ![recovery](plots/m2_recovery.png)
 

@@ -63,7 +63,7 @@ def main():
     rows = (n + cols - 1) // cols
     fig = plt.figure(figsize=(9.0, 6.4), facecolor=BG)
     gs = fig.add_gridspec(2, 1, height_ratios=[1.0, 2.6], hspace=0.28,
-                          left=0.07, right=0.97, top=0.93, bottom=0.06)
+                          left=0.07, right=0.97, top=0.93, bottom=0.085)
     axq = fig.add_subplot(gs[0]); axg = fig.add_subplot(gs[1])
     for ax in (axq, axg):
         ax.set_facecolor(BG)
@@ -94,8 +94,11 @@ def main():
                                color="#0d1117", fontsize=8, fontweight="bold"))
     ticker = axg.text(0.0, -0.28, "", color="#f85149", fontsize=11,
                       fontweight="bold", va="bottom")
-    legend = axg.text(cols, -0.28, "", color="#8b949e", fontsize=7.5, va="bottom", ha="right")
-    legend.set_text("training  commit  straggler  partition  healing  down")
+    leg = [("training", "training"), ("commit", "commit"), ("stopped", "straggler"),
+           ("partition", "partition"), ("recover", "healing"), ("down", "down")]
+    for i, (key, label) in enumerate(leg):
+        fig.text(0.115 + i * 0.135, 0.02, "■ " + label, color=COL[key],
+                 fontsize=8.5, ha="left", va="bottom", fontweight="bold")
 
     def update(i):
         t = t0 + (t1 - t0) * i / max(1, nframes - 1)

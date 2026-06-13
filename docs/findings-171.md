@@ -145,3 +145,41 @@ plots/m4_cloud.png). Two findings directly relevant to #171's semi-sync coordina
 This is exactly the tension #171 raises: naive H-step semi-sync across heterogeneous,
 unsynchronized commodity nodes needs explicit coordination, not just reachability.
 [evidence-171]
+
+## 2026-06-13 — M5 N=32 storm: lighthouse scales; liveness ≠ participation under churn [evidence-171]
+
+32 DiLoCo replica groups (micro model, CPU/gloo, per-replica netns) under one lighthouse on
+a single Ryzen 9 5950X, Poisson chaos storm at 125 faults/hr (28 kill, 9 partition, 8
+SIGSTOP) for 30 min. De-risk ladder N=4 → 8 → 32 first.
+
+- **Lighthouse scales cleanly to 32 managers.** Quorum formation, P2P recovery, and
+  commit/rollback all work at N=32 on one host; the quorum log enumerates all members with
+  distinct store addresses. No coordinator-side bottleneck observed. Confirms the control
+  plane is not the scaling limit for the #171 regime. [evidence-171]
+- **The M4 `min_replica_size>=2` "barrier OOM" was an artifact, not a torchft limit.** It
+  was orphaned-relaunch accumulation (~30 GB) on a dirty host; a clean N=4 barrier run uses
+  ~6 GB and commits in perfect lockstep. Retract the M4 open question (docs/cloud.md). The
+  barrier is the correct config for true averaging and is cheap. [evidence-171]
+- **Liveness ≠ participation under restart churn (the headline #171 finding).** With
+  `min_replica_size=2` and a steady 125 faults/hr, ~30/32 replicas stay ALIVE and training,
+  but per-sync quorum **participation settles ~16/32**. Mechanism: each fault triggers a
+  quorum reconfiguration that knocks the survivors' H-step barrier timing out of phase, and
+  the fault cadence outpaces re-alignment, so only the momentarily-aligned subset commits
+  each sync. **Fault-free, participation is the full 32** (with uniform step times — see
+  next). So "cluster size", "live replicas", and "per-sync averaging breadth" are three
+  different numbers under churn — a semi-sync deployment should report and reason about them
+  separately, and may want an alignment/grace mechanism (a short quorum-gather window, or
+  phase-aligning the H boundary across replicas after a reconfiguration) to widen
+  participation under steady fault rates. [evidence-171; candidate-doc]
+- **Step-time uniformity drives participation; pinning is needed and is non-obvious.** On a
+  core-saturated host, scheduler timeslicing alone (no faults) desynchronizes step times
+  enough to halve participation (median 17/32). Pinning each replica to a core restores full
+  fault-free participation (32/32) AND raises commit *reliability* 93.7% → 97% (a stable
+  aligned subset never fails a barrier). **Gotcha:** `taskset` is silently overridden — torch
+  /MKL reset CPU affinity on `import`; affinity must be set **in-process after import** and
+  **re-asserted** (torch resets again when it spawns gloo collective threads). Relevant to
+  anyone co-locating multiple replica groups per host. [candidate-doc]
+- Throughput is robust to faults even when participation isn't: committed-sync throughput
+  held at **97.7% of fault-free** at 125 faults/hr, all 27 kills recovered (T_back median
+  149 s, T_resume 57 s), global eval loss descended monotonically through the storm, 0 OOM.
+  [evidence-171]

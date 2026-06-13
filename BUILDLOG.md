@@ -221,8 +221,83 @@ the blog post and an explicit review** — this section is inventory, not action
 
 ---
 
+## M5 — the N=32 failure storm (one desktop, 32 replicas)
+
+**Goal:** match torchft's ~30-group framing — show the *coordination* machinery (a
+many-manager lighthouse quorum, P2P recovery, commit/rollback, the barrier) survives chaos
+at a dozens-of-replicas scale.
+
+**The first decision was where to run it.** The instinct (and the earlier plan) was cheap
+cloud nodes. We didn't: M4 already proved the WAN *transport* works across NAT'd, heterogeneous,
+geographically-split nodes (bit-identical digests over the open internet). The N=32 *unknowns*
+were all coordination questions — does the lighthouse scale to 32 managers, does a 32-way gloo
+ring form and commit, does the `min_replica_size≥2` barrier hold without OOM — and those answer
+on **one commodity desktop** for **$0**, with perfectly controllable chaos and zero cloud
+juggling. (That juggling was the context-expensive part of M4; not repeating it was an explicit
+goal.) So: 32 replica groups as CPU/gloo processes in per-replica netns on one Ryzen 9 5950X,
+lighthouse on the same host, a micro (~3.3M-param) model. *Micro because 32 full models don't fit
+commodity RAM and the storm tests coordination, which is model-size-agnostic — itself the honest
+commodity-hardware point: at small scale you co-locate, so the model must be small.*
+
+**Built:** a generalized N-replica harness — `run_storm.sh` (was hardcoded to 2 GPU replicas),
+`launch_storm_replica.sh`, a single `supervisor_n.sh` watching all N, the `storm_micro` config —
+plus an **aggregate** monitor (`storm_status.py`) that prints one fixed-size summary regardless of
+N. Fixed a real bug surfaced by scaling: `kill_safe`'s healthy-donor search defaulted to
+`n_replicas=2`, so at N=32 it only ever checked replicas {0,1}; plumbed `--replicas` through the
+chaos controller.
+
+**De-risk ladder (N=4 → 8 → 32), all free, all on home hardware:**
+- **N=4 settled the OOM.** The M4 `min_replica_size≥2` OOM that "needed investigation" was an
+  **artifact** — six orphaned relaunches piling up ~30 GB on a dirty box. On a clean box the barrier
+  runs at ~6 GB: quorum forms at 4, `outer_step` spread 0 (perfect lockstep), a kill recovers in 42 s.
+- **N=8** confirmed the lighthouse coordinates 8 managers cleanly (the quorum log lists all 8 with
+  distinct store addresses) and an 8-way ring commits **133/133** through 8 kills, all recovered.
+- **N=32** is feasible at ~25 GB working set; the 28 GB we first saw was the *simultaneous* torch-import
+  peak (32 processes importing at once), which settles back down. One memory scare — a 31.5 GB transient
+  when a relaunch cluster and eval coincided — but **0 OOM the entire project**.
+
+**Then the real surprise: liveness ≠ participation.** The first N=32 storm showed median quorum
+**16/32**. The tell: the *fault-free* reference showed median **17** too. So the low participation
+wasn't chaos — it was **CPU oversubscription**. 32 compute-heavy processes on 16 physical cores get
+timesliced unevenly by the scheduler, so their step times drift and only a subset reach each H-step
+barrier together; the soft barrier (`min_replica_size=2`) commits with whoever's there and the fast
+subset races on.
+
+**The fix is CPU pinning — and it taught us something.** `taskset -c <core>` *looked* applied but the
+python leaf still showed affinity `0-31`: **torch/MKL reset CPU affinity on import**, silently
+overriding it. So we pin **in-process** (`os.sched_setaffinity` after torch loads) and **re-assert it
+every sync** (torch resets again when it spawns gloo collective threads). With 1:1 pinning, step times
+go uniform and **fault-free participation jumps 17 → 32** (the full cluster reaches every barrier
+together).
+
+**But under the storm, participation stays ~16 even pinned** — and that's the honest, #171-relevant
+finding. Each fault triggers a quorum reconfiguration that knocks the survivors' barrier timing back
+out of phase, and at **125 faults/hr** the cluster never re-aligns. (Dense eval did the same thing —
+each replica's eval steals variable CPU and desyncs it — so the headline run uses light eval.) Meanwhile
+**~30/32 replicas stay alive and training the whole time**: liveness is high, participation is gated by
+sync-alignment under churn, and those are *different numbers*. *Lesson: at a dozens-of-replicas scale a
+low `min_replica_size` plus a steady fault rate means "alive" and "in this sync's quorum" diverge — the
+soft-barrier alignment tax. The cluster size is still 32; the per-sync averaging breadth is a separate,
+honestly-reported property.*
+
+**Result (CPU-pinned, 125 faults/hr, 30 min):** committed-sync throughput holds at **97.7% of fault-free**,
+**97% of sync attempts commit**, **all 27 kills recover** (T_back median 149 s, T_resume 57 s), the global
+eval loss descends **10.8 → 4.3 monotonically through 28 kills**, and **0 OOM**. Pinning also lifted
+commit *reliability* 93.7% → 97% (the stable aligned subset never fails a barrier).
+
+**Dashboards had to be rethought for scale.** The old `dashboard.py` rendered one panel *per worker* —
+fine at 2, unreadable at 32. Two replacements, both fixed-size at any N and sharing one event-derivation
+module (`storm_events.py`): a live aggregate TUI (`storm_dash.py` — a colored replica-state grid + quorum
+sparkline + fault feed) and a **telemetry-reconstructed** GIF (`storm_gif.py`). The GIF needs *no live
+recording*: every fault and commit is timestamped, so the time axis is ours to compress (30 min → 26 s)
+and the encoding ours to choose (a 32-cell swarm where you can literally watch the purple healing-tail
+that explains why participation trails liveness). *Lesson: at scale, reconstruct visualizations from
+ground-truth telemetry rather than screen-recording a live dashboard — more legible and fully reproducible.*
+
+---
+
 ## Next
 
-N=32 scale-out storm (matching torchft's ~30-group framing) on cheap cloud nodes with the
-small model, aggregate lighthouse-based orchestration, over-provisioned. Then M5 polish and
-the blog. This log gets appended throughout.
+M5 polish and the blog write-up (`nicholicaron.github.io`, ternfpga-post quality bar). Per the owner's
+instruction, the upstream-to-Meta step waits until after the blog and an explicit review. This log is the
+spine; `docs/findings-171.md` is the torchft-facing evidence.
