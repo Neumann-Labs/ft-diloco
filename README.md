@@ -14,9 +14,11 @@ disconnecting, or adding machines mid-run does not break convergence.
 
 *32 DiLoCo replica groups train under one lighthouse on a single commodity desktop while a
 chaos controller injects **125 faults/hr** — `kill -9`, SIGSTOP stragglers, link partitions.
-Green = training, white = committing a sync, purple = P2P-healing after a kill, red = killed.
-~30/32 stay alive throughout, every kill recovers, and the loss keeps descending. Reconstructed
-from the run's JSONL (every fault and commit is timestamped); 30 min compressed to 26 s.*
+The grid is each worker's live state (green = training, white = committing a sync, purple =
+P2P-healing after a kill, red = killed); the charts track the **quorum** (left) and the **eval
+loss** (right), with red ticks marking every kill. Despite the constant interruptions the cluster
+never loses quorum and the loss falls steadily — ~30/32 stay alive throughout and every kill
+recovers. Reconstructed from the run's JSONL (every fault and commit is timestamped); 30 min → 26 s.*
 
 ## Results so far
 

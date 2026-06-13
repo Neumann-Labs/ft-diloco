@@ -17,6 +17,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.patches import Rectangle
 
@@ -59,27 +60,60 @@ def main():
     qts = [q[0] for q in quorum]
     qsz = [q[1] for q in quorum]
 
+    # eval-loss series (pooled across replicas) + a binned-median trend for a clean curve
+    ev = sorted((e["ts"], e["eval_loss"]) for f in run.glob("replica*.jsonl")
+                for e in load_jsonl(f) if e.get("event") == "eval" and "eval_loss" in e
+                and t0 - 1 <= e["ts"] <= t1 + 1)
+    evt = [a for a, _ in ev]
+    evl = [b for _, b in ev]
+    trt, trl = [], []
+    if evt:
+        edges = np.linspace(t0, t1, 46)
+        idx = np.digitize(evt, edges)
+        for b in range(1, len(edges)):
+            sel = [j for j in range(len(evt)) if idx[j] == b]
+            if sel:
+                trt.append(float(np.mean([evt[j] for j in sel])))
+                trl.append(float(np.median([evl[j] for j in sel])))
+    lo = (min(evl) - 0.4) if evl else 0
+    hi = (max(evl) + 0.4) if evl else 1
+    kill_ts = [k for r in range(n) for k in kills[r] if t0 <= k <= t1]
+
     cols = args.cols
     rows = (n + cols - 1) // cols
-    fig = plt.figure(figsize=(9.0, 6.4), facecolor=BG)
-    gs = fig.add_gridspec(2, 1, height_ratios=[1.0, 2.6], hspace=0.28,
-                          left=0.07, right=0.97, top=0.93, bottom=0.085)
-    axq = fig.add_subplot(gs[0]); axg = fig.add_subplot(gs[1])
-    for ax in (axq, axg):
+    fig = plt.figure(figsize=(9.6, 7.0), facecolor=BG)
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 2.5], width_ratios=[1, 1],
+                          hspace=0.32, wspace=0.18, left=0.07, right=0.96, top=0.86, bottom=0.13)
+    axq = fig.add_subplot(gs[0, 0]); axl = fig.add_subplot(gs[0, 1]); axg = fig.add_subplot(gs[1, :])
+    for ax in (axq, axl, axg):
         ax.set_facecolor(BG)
         for s in ax.spines.values():
             s.set_visible(False)
 
-    # quorum timeline (static faint full line + animated fill/marker)
+    title = fig.text(0.07, 0.945, "", color=FG, fontsize=12, ha="left", fontweight="bold")
+    fig.text(0.07, 0.905, "Despite constant interruptions, the cluster never lost quorum "
+             "and the loss kept falling.", color="#8b949e", fontsize=9.5, ha="left", style="italic")
+
+    # quorum panel (faint full line + animated fill/marker + kill ticks)
     axq.plot(qts, qsz, color="#30363d", lw=1.0)
-    axq.set_xlim(t0, t1); axq.set_ylim(0, n + 1)
-    axq.set_ylabel("quorum", color=FG, fontsize=9)
+    for k in kill_ts:
+        axq.axvline(k, color="#f85149", alpha=0.35, lw=0.7, ymax=0.08)
+    axq.set_xlim(t0, t1); axq.set_ylim(0, n + 1); axq.set_xticks([])
+    axq.set_ylabel("quorum  /32", color=FG, fontsize=9)
     axq.tick_params(colors="#6e7681", labelsize=7)
-    axq.set_xticks([])
     axq.axhline(n, color="#21262d", lw=0.8, ls=":")
     fill = axq.fill_between([t0, t0], [0, 0], color="#1f6feb", alpha=0.25)
     qmark, = axq.plot([], [], "o", color="#58a6ff", ms=5)
-    title = axq.set_title("", color=FG, fontsize=12, loc="left", pad=8)
+
+    # loss panel (faint full scatter + animated descending trend + kill ticks)
+    axl.scatter(evt, evl, s=6, color="#26492e", alpha=0.7, edgecolors="none")
+    for k in kill_ts:
+        axl.axvline(k, color="#f85149", alpha=0.3, lw=0.7, ymax=0.08)
+    axl.set_xlim(t0, t1); axl.set_ylim(lo, hi); axl.set_xticks([])
+    axl.set_ylabel("eval loss", color=FG, fontsize=9)
+    axl.tick_params(colors="#6e7681", labelsize=7)
+    lline, = axl.plot([], [], color="#3fb950", lw=2.2)
+    lmark, = axl.plot([], [], "o", color="#f0f6fc", ms=5)
 
     # grid of replica cells
     axg.set_xlim(0, cols); axg.set_ylim(0, rows); axg.invert_yaxis()
@@ -92,12 +126,12 @@ def main():
         axg.add_patch(rect); rects.append(rect)
         labels.append(axg.text(cx + 0.5, cy + 0.5, str(r), ha="center", va="center",
                                color="#0d1117", fontsize=8, fontweight="bold"))
-    ticker = axg.text(0.0, -0.28, "", color="#f85149", fontsize=11,
+    ticker = axg.text(0.0, -0.26, "", color="#f85149", fontsize=11,
                       fontweight="bold", va="bottom")
     leg = [("training", "training"), ("commit", "commit"), ("stopped", "straggler"),
            ("partition", "partition"), ("recover", "healing"), ("down", "down")]
     for i, (key, label) in enumerate(leg):
-        fig.text(0.115 + i * 0.135, 0.02, "■ " + label, color=COL[key],
+        fig.text(0.115 + i * 0.135, 0.035, "■ " + label, color=COL[key],
                  fontsize=8.5, ha="left", va="bottom", fontweight="bold")
 
     def update(i):
@@ -117,13 +151,18 @@ def main():
         seg_q = qsz[:len(seg_t)] or [0]
         fill = axq.fill_between(seg_t, seg_q, color="#1f6feb", alpha=0.22)
         qmark.set_data([t], [cur_q])
+        k = len([x for x in trt if x <= t])
+        lline.set_data(trt[:k], trl[:k])
+        cur_l = trl[k - 1] if k else None
+        lmark.set_data([t], [cur_l]) if cur_l is not None else lmark.set_data([], [])
         mins = (t - t0) / 60.0
         speed = (t1 - t0) / args.seconds
-        title.set_text(f"32-replica DiLoCo failure storm   t+{mins:4.1f} min   "
-                       f"quorum {cur_q}/{n}   commits {ncommit}   ({speed:.0f}x)")
+        lstr = f"loss {cur_l:.1f}" if cur_l is not None else "loss —"
+        title.set_text(f"32-replica DiLoCo failure storm   ·   t+{mins:4.1f} min   ·   "
+                       f"quorum {cur_q}/{n}   ·   {lstr}   ·   {speed:.0f}×")
         recent = [lab for (ts, lab) in faults_tl if t - args.pulse * 1.5 <= ts <= t]
         ticker.set_text("⚡ " + "   ".join(recent[-3:]) if recent else "")
-        return rects + labels + [qmark, title, ticker]
+        return rects + labels + [qmark, lline, lmark, title, ticker]
 
     anim = FuncAnimation(fig, update, frames=nframes, blit=False)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
