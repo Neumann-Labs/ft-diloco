@@ -28,6 +28,7 @@ ERROR = "var(--error,#a64542)"
 PRIMARY_C = "var(--primary-container,#fceee9)"
 SURF = "var(--surface-container,#f3f0eb)"
 AX = "currentColor"
+GREEN = "#2f9e44"  # a hue distinct from the warm primary/error, readable on both themes
 
 
 def esc(s):
@@ -216,11 +217,11 @@ def fig6_regression():
     c.xticklabels([0, xmax / 2, xmax], [f"{v:.0f}" for v in (0, xmax / 2, xmax)])
     c.xlabel("storm time (min)")
     c.poly([(c.px(x), c.py(y)) for x, y in zip(nx, ny)], ERROR, 2.4)
-    c.poly([(c.px(x), c.py(y)) for x, y in zip(fx, fy)], PRIMARY, 2.4)
+    c.poly([(c.px(x), c.py(y)) for x, y in zip(fx, fy)], GREEN, 2.6)
     if ny:
         c.text(c.px(nx[-1]), c.py(ny[-1]) - 8, "no checkpoints: regresses", 11, ERROR, "end", 1, 600)
     if fy:
-        c.text(c.px(fx[-1]), c.py(fy[-1]) + 16, "commit-coupled checkpoints: holds", 11, PRIMARY, "end", 1, 600)
+        c.text(c.px(fx[-1]), c.py(fy[-1]) + 16, "commit-coupled checkpoints: holds", 11, GREEN, "end", 1, 600)
     return c.svg()
 
 
