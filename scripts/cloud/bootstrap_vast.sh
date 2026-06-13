@@ -14,9 +14,11 @@
 #                ship authorized_keys with bad modes → sshd refuses; see cloud.md)
 #   H            sync_every (default 100)    STEPS (default 3000)
 #   DEVICE       cuda|cpu (default cuda)      TORCH_INDEX (default cu128)
-set -uo pipefail
 export DEBIAN_FRONTEND=noninteractive
 exec > /var/log/ftd-bootstrap.log 2>&1
+# Vast writes --env vars to /etc/environment on VM instances (NOT the onstart shell).
+[ -f /etc/environment ] && set -a && . /etc/environment && set +a
+set -uo pipefail
 
 echo "=== [0/6] fix ssh key perms (VM images ship bad modes → lockout)"
 mkdir -p /root/.ssh
