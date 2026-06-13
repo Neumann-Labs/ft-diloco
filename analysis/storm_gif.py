@@ -23,16 +23,26 @@ from matplotlib.patches import Rectangle
 
 from storm_events import build, load_jsonl, state
 
-BG = "#0d1117"
-FG = "#c9d1d9"
-COL = {
-    "training": "#3fb950",     # alive, between syncs
-    "commit": "#f0f6fc",       # just committed a sync (brief flash)
-    "down": "#5a1e1e",         # killed, awaiting supervisor relaunch
-    "stopped": "#d29922",      # SIGSTOP straggler
-    "partition": "#388bfd",    # link down
-    "recover": "#a371f7",      # relaunched, healing (no commit yet)
+# Two palettes so the GIF can match the blog's light/dark toggle (a light variant + a
+# dark variant are rendered, and the post swaps them with the theme). Dark = GitHub-dark
+# telemetry look; light = tuned for contrast on the site's warm near-white surface.
+THEMES = {
+    "dark": dict(
+        bg="#0d1117", fg="#c9d1d9", grid="#30363d", ceil="#21262d", axtick="#6e7681",
+        qfill="#1f6feb", qmark="#58a6ff", lscatter="#26492e", lline="#3fb950",
+        mark="#f0f6fc", tick="#f85149", caption="#8b949e", edge="#0d1117",
+        label_dark="#0d1117", label_light="#f0f6fc", label_dark_states={"commit", "training"},
+        states={"training": "#3fb950", "commit": "#f0f6fc", "down": "#5a1e1e",
+                "stopped": "#d29922", "partition": "#388bfd", "recover": "#a371f7"}),
+    "light": dict(
+        bg="#fbf7f1", fg="#1c1c19", grid="#ddd5c9", ceil="#cfc8bc", axtick="#9b958c",
+        qfill="#b06a4e", qmark="#94452b", lscatter="#a9c6ad", lline="#2e7d3f",
+        mark="#1c1c19", tick="#c0392b", caption="#6f6a62", edge="#fbf7f1",
+        label_dark="#1c1c19", label_light="#ffffff", label_dark_states={"down"},
+        states={"training": "#3a9d4e", "commit": "#1c1c19", "down": "#d8b3b3",
+                "stopped": "#c6850f", "partition": "#2f6fd0", "recover": "#7a52c9"}),
 }
+T = THEMES["dark"]  # selected in main() via --theme
 
 
 def main():
@@ -44,7 +54,10 @@ def main():
     p.add_argument("--fps", type=int, default=18)
     p.add_argument("--cols", type=int, default=8)
     p.add_argument("--pulse", type=float, default=4.0, help="wall-seconds a commit flash lasts")
+    p.add_argument("--theme", choices=("dark", "light"), default="dark")
     args = p.parse_args()
+    global T
+    T = THEMES[args.theme]
     run = Path(args.run)
     n = args.n
     starts, commits, kills, stops, parts, quorum, faults_tl = build(run, n)
@@ -81,39 +94,39 @@ def main():
 
     cols = args.cols
     rows = (n + cols - 1) // cols
-    fig = plt.figure(figsize=(9.6, 7.0), facecolor=BG)
+    fig = plt.figure(figsize=(9.6, 7.0), facecolor=T["bg"])
     gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 2.5], width_ratios=[1, 1],
                           hspace=0.32, wspace=0.18, left=0.07, right=0.96, top=0.86, bottom=0.13)
     axq = fig.add_subplot(gs[0, 0]); axl = fig.add_subplot(gs[0, 1]); axg = fig.add_subplot(gs[1, :])
     for ax in (axq, axl, axg):
-        ax.set_facecolor(BG)
+        ax.set_facecolor(T["bg"])
         for s in ax.spines.values():
             s.set_visible(False)
 
-    title = fig.text(0.07, 0.945, "", color=FG, fontsize=12, ha="left", fontweight="bold")
+    title = fig.text(0.07, 0.945, "", color=T["fg"], fontsize=12, ha="left", fontweight="bold")
     fig.text(0.07, 0.905, "Despite constant interruptions, the cluster never lost quorum "
-             "and the loss kept falling.", color="#8b949e", fontsize=9.5, ha="left", style="italic")
+             "and the loss kept falling.", color=T["caption"], fontsize=9.5, ha="left", style="italic")
 
     # quorum panel (faint full line + animated fill/marker + kill ticks)
-    axq.plot(qts, qsz, color="#30363d", lw=1.0)
+    axq.plot(qts, qsz, color=T["grid"], lw=1.0)
     for k in kill_ts:
-        axq.axvline(k, color="#f85149", alpha=0.35, lw=0.7, ymax=0.08)
+        axq.axvline(k, color=T["tick"], alpha=0.35, lw=0.7, ymax=0.08)
     axq.set_xlim(t0, t1); axq.set_ylim(0, n + 1); axq.set_xticks([])
-    axq.set_ylabel("quorum  /32", color=FG, fontsize=9)
-    axq.tick_params(colors="#6e7681", labelsize=7)
-    axq.axhline(n, color="#21262d", lw=0.8, ls=":")
-    fill = axq.fill_between([t0, t0], [0, 0], color="#1f6feb", alpha=0.25)
-    qmark, = axq.plot([], [], "o", color="#58a6ff", ms=5)
+    axq.set_ylabel("quorum  /32", color=T["fg"], fontsize=9)
+    axq.tick_params(colors=T["axtick"], labelsize=7)
+    axq.axhline(n, color=T["ceil"], lw=0.8, ls=":")
+    fill = axq.fill_between([t0, t0], [0, 0], color=T["qfill"], alpha=0.25)
+    qmark, = axq.plot([], [], "o", color=T["qmark"], ms=5)
 
     # loss panel (faint full scatter + animated descending trend + kill ticks)
-    axl.scatter(evt, evl, s=6, color="#26492e", alpha=0.7, edgecolors="none")
+    axl.scatter(evt, evl, s=6, color=T["lscatter"], alpha=0.7, edgecolors="none")
     for k in kill_ts:
-        axl.axvline(k, color="#f85149", alpha=0.3, lw=0.7, ymax=0.08)
+        axl.axvline(k, color=T["tick"], alpha=0.3, lw=0.7, ymax=0.08)
     axl.set_xlim(t0, t1); axl.set_ylim(lo, hi); axl.set_xticks([])
-    axl.set_ylabel("eval loss", color=FG, fontsize=9)
-    axl.tick_params(colors="#6e7681", labelsize=7)
-    lline, = axl.plot([], [], color="#3fb950", lw=2.2)
-    lmark, = axl.plot([], [], "o", color="#f0f6fc", ms=5)
+    axl.set_ylabel("eval loss", color=T["fg"], fontsize=9)
+    axl.tick_params(colors=T["axtick"], labelsize=7)
+    lline, = axl.plot([], [], color=T["lline"], lw=2.2)
+    lmark, = axl.plot([], [], "o", color=T["mark"], ms=5)
 
     # grid of replica cells
     axg.set_xlim(0, cols); axg.set_ylim(0, rows); axg.invert_yaxis()
@@ -121,17 +134,17 @@ def main():
     rects, labels = [], []
     for r in range(n):
         cx, cy = r % cols, r // cols
-        rect = Rectangle((cx + 0.06, cy + 0.06), 0.88, 0.88, facecolor=COL["down"],
-                         edgecolor="#0d1117", lw=1.5)
+        rect = Rectangle((cx + 0.06, cy + 0.06), 0.88, 0.88, facecolor=T["states"]["down"],
+                         edgecolor=T["edge"], lw=1.5)
         axg.add_patch(rect); rects.append(rect)
         labels.append(axg.text(cx + 0.5, cy + 0.5, str(r), ha="center", va="center",
-                               color="#0d1117", fontsize=8, fontweight="bold"))
-    ticker = axg.text(0.0, -0.26, "", color="#f85149", fontsize=11,
+                               color=T["label_dark"], fontsize=8, fontweight="bold"))
+    ticker = axg.text(0.0, -0.26, "", color=T["tick"], fontsize=11,
                       fontweight="bold", va="bottom")
     leg = [("training", "training"), ("commit", "commit"), ("stopped", "straggler"),
            ("partition", "partition"), ("recover", "healing"), ("down", "down")]
     for i, (key, label) in enumerate(leg):
-        fig.text(0.115 + i * 0.135, 0.035, "■ " + label, color=COL[key],
+        fig.text(0.115 + i * 0.135, 0.035, "■ " + label, color=T["states"][key],
                  fontsize=8.5, ha="left", va="bottom", fontweight="bold")
 
     def update(i):
@@ -143,13 +156,13 @@ def main():
             st = state(r, t, starts, commits, kills, stops, parts)
             if st == "training" and any(t - args.pulse <= c <= t for c in commits[r]):
                 st = "commit"
-            rects[r].set_facecolor(COL[st])
-            labels[r].set_color("#0d1117" if st in ("commit", "training") else "#f0f6fc")
+            rects[r].set_facecolor(T["states"][st])
+            labels[r].set_color(T["label_dark"] if st in T["label_dark_states"] else T["label_light"])
         nonlocal fill
         fill.remove()
         seg_t = [s for s in qts if s <= t] or [t0]
         seg_q = qsz[:len(seg_t)] or [0]
-        fill = axq.fill_between(seg_t, seg_q, color="#1f6feb", alpha=0.22)
+        fill = axq.fill_between(seg_t, seg_q, color=T["qfill"], alpha=0.22)
         qmark.set_data([t], [cur_q])
         k = len([x for x in trt if x <= t])
         lline.set_data(trt[:k], trl[:k])
