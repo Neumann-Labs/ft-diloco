@@ -52,14 +52,14 @@ echo "=== [5/6] connectivity"
 curl -s -o /dev/null -w "lighthouse HTTP %{http_code}\n" "$LIGHTHOUSE" || true
 
 echo "=== [6/6] launch replica $REPLICA_ID/$N_REPLICAS"
-mkdir -p experiments/m4-cloud
+mkdir -p experiments/${RUN_ID:-m4-cloud}
 MASTER_ADDR="$TS_IP" MASTER_PORT=29600 RANK=0 WORLD_SIZE=1 \
 GLOO_SOCKET_IFNAME=tailscale0 \
 REPLICA_GROUP_ID="$REPLICA_ID" NUM_REPLICA_GROUPS="$N_REPLICAS" \
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 TORCHFT_LIGHTHOUSE="$LIGHTHOUSE" FTD_ADVERTISE_HOST="$TS_IP" \
-nohup python3 -m ftdiloco.train --config configs/train/m1_diloco.yaml \
+nohup python3 -m ftdiloco.train --config "${CONFIG:-configs/train/m1_diloco.yaml}" \
   --set run_id="${RUN_ID:-m4-cloud}" --set sync_every="${H:-100}" --set max_steps="${STEPS:-3000}" \
   --set device="${DEVICE:-cuda}" --set quorum_timeout_s=600 --set pg_timeout_s=600 \
-  > experiments/m4-cloud/worker$REPLICA_ID.log 2>&1 &
+  > experiments/${RUN_ID:-m4-cloud}/worker$REPLICA_ID.log 2>&1 &
 echo "BOOTSTRAP_DONE replica=$REPLICA_ID ts_ip=$TS_IP"

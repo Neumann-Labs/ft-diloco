@@ -1,0 +1,21 @@
+# M4 cloud headline: base124m (GPT-2-small) across worker4 + cloud 4090s over WAN.
+run_id: m4-cloud-headline
+mode: diloco
+model: base124m
+data_dir: data/tinystories
+seed: 1337
+batch_size: 8
+grad_accum: 4
+max_steps: 800
+sync_every: 100
+outer_lr: 0.7
+outer_momentum: 0.9
+min_replica_size: 1
+lr: 4.0e-4
+warmup_steps: 100
+log_every: 10
+eval_every: 200
+eval_batches: 40
+ckpt_every_syncs: 5
+quorum_timeout_s: 600
+pg_timeout_s: 600
