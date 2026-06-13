@@ -32,9 +32,14 @@ from . import faults
 FAULTS_NEEDING_RUN_DIR = {"kill", "kill_safe", "stop", "cont"}
 
 
-def execute(schedule: dict, run_dir: Path, dry_run: bool = False) -> None:
+def execute(schedule: dict, run_dir: Path, dry_run: bool = False,
+            n_replicas: int | None = None) -> None:
     events = sorted(schedule["events"], key=lambda e: e["at"])
     launch_cmd = schedule.get("launch_cmd", "")
+    # n_replicas governs kill_safe's healthy-donor search set; fall back to the
+    # schedule generator's recorded replica count (default 2 for legacy schedules).
+    if n_replicas is None:
+        n_replicas = int(schedule.get("generator", {}).get("replicas", 2))
     log_path = run_dir / "chaos.jsonl"
     t0_mono = time.monotonic()
     t0_wall = time.time()
@@ -63,6 +68,8 @@ def execute(schedule: dict, run_dir: Path, dry_run: bool = False) -> None:
         try:
             if dry_run:
                 rec["result"] = {"dry_run": True}
+            elif fault == "kill_safe":
+                rec["result"] = faults.kill_safe(run_dir, target, n_replicas)
             elif fault in FAULTS_NEEDING_RUN_DIR:
                 rec["result"] = getattr(faults, fault)(run_dir, target)
             elif fault == "relaunch":
@@ -87,10 +94,12 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--schedule", required=True)
     p.add_argument("--run-dir", required=True)
+    p.add_argument("--replicas", type=int, default=None,
+                   help="replica count for kill_safe donor search (default: from schedule)")
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
     schedule = yaml.safe_load(Path(args.schedule).read_text())
-    execute(schedule, Path(args.run_dir), dry_run=args.dry_run)
+    execute(schedule, Path(args.run_dir), dry_run=args.dry_run, n_replicas=args.replicas)
 
 
 if __name__ == "__main__":

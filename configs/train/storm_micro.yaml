@@ -1,0 +1,29 @@
+# N-replica failure storm, single commodity host (worker4), CPU/gloo.
+# Micro model (~3.3M params): 32 full-size models won't fit commodity RAM, and the
+# storm measures the COORDINATION machinery under chaos (quorum / P2P recovery /
+# commit-rollback / lighthouse scaling) — which is model-size-agnostic — not
+# convergence quality. min_replica_size=2 forces a true cross-replica barrier
+# average every sync (no solo commits); the M3 quorum-wipe fix (commit-coupled
+# checkpoints) stays on.
+run_id: storm
+mode: diloco
+model: micro
+data_dir: data/tinystories
+seed: 1337
+batch_size: 16
+grad_accum: 1
+max_steps: 1000000      # storm is wall-clock bounded; never end naturally
+sync_every: 20          # H — frequent syncs => many commit events to measure efficiency
+outer_lr: 0.7
+outer_momentum: 0.9
+min_replica_size: 2     # true barrier average across replicas (the thing we de-risk)
+quorum_timeout_s: 120.0
+pg_timeout_s: 60.0
+ckpt_every_syncs: 5     # commit-coupled durable checkpoints (M3 quorum-wipe fix)
+lr: 4.0e-4
+warmup_steps: 100
+log_every: 20
+eval_every: 200
+eval_batches: 10
+device: cpu
+dtype: float32
